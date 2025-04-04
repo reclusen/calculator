@@ -4,11 +4,15 @@ const keys = document.querySelectorAll(".key");
 const p = document.createElement("p");
 
 keys.forEach((key) => {
+    // key.addEventListener("keydown", (e) => {
+    //     console.log("key: ", e.key);
+    // });
+
     key.addEventListener("click", (e) => {
         const screenStyles = getComputedStyle(calcScreen);
         const fontSize = screenStyles.fontSize;
 
-        if (calcScreen.children.length > 8) {
+        if (calcScreen.children.length > 8 && !key.classList.contains("delete")) {
             const calcRect = calcScreen.getBoundingClientRect();
             const num = calcScreen.firstElementChild.getBoundingClientRect();
 
@@ -16,8 +20,6 @@ keys.forEach((key) => {
             if (num.x > calcRect.x) {
                 calcScreen.style.fontSize = `${parseFloat(fontSize) - 4}px`;
             }
-        } else {
-            calcScreen.style.fontSize = fontSize;
         }
 
         switch (key.className) {
@@ -29,14 +31,19 @@ keys.forEach((key) => {
                     console.log("clicked delete");
                     calcScreen.removeChild(calcScreen.lastElementChild);
                 }
+                
+                if (calcScreen.children.length > 8) {
+                    calcScreen.style.fontSize = `${parseFloat(fontSize) + 4}px`;
+                }
+
                 break;
             case "key clear":
                 const zero = document.createElement("div");
                 calcScreen.replaceChildren();
 
                 zero.innerText = 0;
+                calcScreen.style.fontSize = `52px`;
                 calcScreen.append(zero);
-                calcScreen.style.fontSize = "52px";
 
                 break;
             case "key plus-minus":
@@ -118,8 +125,8 @@ keys.forEach((key) => {
                         }
                     }
 
+                    postfix += " ";
                     while (exp.length != 0) {
-                        postfix += " ";
                         postfix += exp.pop();
                         postfix += " ";
                     }
@@ -143,14 +150,16 @@ keys.forEach((key) => {
                         }
                         
                         if (!isNaN(postfix[j]) && postfix[j] != " ") {
+                            console.log(`postfix: "${postfix[j]}"`);
                             num += postfix[j];
                         }
 
-                        if (postfix[j] == " ") {
+                        if (postfix[j] == " " && num != "") {
                             exp.push(parseFloat(num));
                             num = "";
                         }
 
+                        console.log(`exp: ${exp}`);
                     }
 
                     return `${exp.pop()}`;
@@ -203,7 +212,7 @@ keys.forEach((key) => {
                 }
     
                 console.log("created div");
-                console.log(`screen childxren: ${calcScreen.children.length}`);
+                console.log(`screen children: ${calcScreen.children.length}`);
 
 
                 if (calcScreen.children.length === 1 
