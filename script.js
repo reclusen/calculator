@@ -108,7 +108,7 @@ keys.forEach((key) => {
 
                     for (let j = 0; j < infix.length; j++) {
                         if (!isNaN(infix[j]) || infix[j] == ".") {
-                            postfix += infix[j];
+                            postfix += infix[j];cle
                         }
 
                         if (isOperator(infix[j]) || (infix[j] == "(") || (infix[j] == ")")) {
