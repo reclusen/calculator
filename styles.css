@@ -29,8 +29,6 @@
 }
 
 .screen .value {
-    display: flex;
-    flex-flow: row wrap;
     margin: 0 3px;
 }
 
@@ -51,7 +49,6 @@
     align-items: center;
     background-color: #181415;
     color: #f2f2f2;
-    border: 1px solid #000;
     font-family: "Lato";
     font-size: 2rem;
     border-radius: 15px;

@@ -1,16 +1,25 @@
 const calcScreen = document.querySelector(".screen");
 const keys = document.querySelectorAll(".key");
 
+const p = document.createElement("p");
+
 keys.forEach((key) => {
     key.addEventListener("click", (e) => {
-        if (calcScreen.children.length != 0) {
-            if (calcScreen.offsetLeft > calcScreen.firstElementChild.offsetLeft) {
-                const screenStyles = getComputedStyle(calcScreen);
-                console.log(screenStyles.fontSize);
-                calcScreen.style.fontSize = `${parseFloat(screenStyles.fontSize) - 8}px`;
+        const screenStyles = getComputedStyle(calcScreen);
+        const fontSize = screenStyles.fontSize;
+
+        if (calcScreen.children.length > 8) {
+            const calcRect = calcScreen.getBoundingClientRect();
+            const num = calcScreen.firstElementChild.getBoundingClientRect();
+
+            //decrease font size as divs n increase more than 8
+            if (num.x > calcRect.x) {
+                calcScreen.style.fontSize = `${parseFloat(fontSize) - 4}px`;
             }
+        } else {
+            calcScreen.style.fontSize = fontSize;
         }
-        
+
         switch (key.className) {
             case "key delete":
                 if (calcScreen.children.length === 1) {
@@ -27,6 +36,8 @@ keys.forEach((key) => {
 
                 zero.innerText = 0;
                 calcScreen.append(zero);
+                calcScreen.style.fontSize = "52px";
+
                 break;
             case "key plus-minus":
                 console.log("pressed plus minus");
@@ -93,7 +104,7 @@ keys.forEach((key) => {
                             postfix += infix[j];
                         }
 
-                        if (isOperator(infix[j])) {
+                        if (isOperator(infix[j]) || (infix[j] == "(") || (infix[j] == ")")) {
                             postfix += " ";
 
                             //check while stack is not empty and the precedence of the top value in
@@ -142,7 +153,7 @@ keys.forEach((key) => {
 
                     }
 
-                    return `${exp.pop()}`
+                    return `${exp.pop()}`;
                 }
 
                 const postfix = infixToPostfix(infix);
@@ -163,9 +174,11 @@ keys.forEach((key) => {
             default:
                 const value = document.createElement("div");
 
-                if (key.className.includes("left-paren")) {
+                if (key.classList.contains("plus-minus")) {
+                    value.setAttribute("class", "unary");
+                } else if (key.classList.contains("left-paren")) {
                     value.innerText = "(";
-                } else if (key.className.includes("right-paren")) {
+                } else if (key.classList.contains("right-paren")) {
                     value.innerText = ")";
                 } else {
                     value.innerText = e.target.innerText;
@@ -181,16 +194,16 @@ keys.forEach((key) => {
                     }
                 }
 
-                if (key.classList.contains("plus-minus")) {
-                    value.setAttribute("class", "unary");
+                if (calcScreen.children.length != 0) {
+                    for (let i = 0; i < calcScreen.children.length; i++) {
+                        if (calcScreen.children[i].innerText == 1) {
+                            calcScreen.children[i].style.paddingLeft = "10px";
+                        }
+                    }
                 }
-
-                // if (key.classList.contains("one")) {
-                //     calcScreen.lastElementChild.style.marginLeft = "15px";
-                // }
     
                 console.log("created div");
-                console.log(`screen children: ${calcScreen.children.length}`);
+                console.log(`screen childxren: ${calcScreen.children.length}`);
 
 
                 if (calcScreen.children.length === 1 
