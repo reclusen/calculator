@@ -29,6 +29,8 @@
 }
 
 .screen .value {
+    display: flex;
+    flex-flow: row wrap;
     margin: 0 3px;
 }
 
@@ -173,8 +175,8 @@
 }
 
 .key.clear {
-    grid-column: 4;
-    grid-row: 1;
+    grid-column: 3;
+    grid-row: 2;
 }
 
 .key.div {
@@ -184,4 +186,5 @@
 
 .key.delete {
     grid-column: 4;
+    grid-row: 1;
 }

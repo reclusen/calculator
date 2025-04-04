@@ -2,7 +2,15 @@ const calcScreen = document.querySelector(".screen");
 const keys = document.querySelectorAll(".key");
 
 keys.forEach((key) => {
-    key.addEventListener("click", (e) => {        
+    key.addEventListener("click", (e) => {
+        if (calcScreen.children.length != 0) {
+            if (calcScreen.offsetLeft > calcScreen.firstElementChild.offsetLeft) {
+                const screenStyles = getComputedStyle(calcScreen);
+                console.log(screenStyles.fontSize);
+                calcScreen.style.fontSize = `${parseFloat(screenStyles.fontSize) - 8}px`;
+            }
+        }
+        
         switch (key.className) {
             case "key delete":
                 if (calcScreen.children.length === 1) {
@@ -52,19 +60,19 @@ keys.forEach((key) => {
                 let infix = "";
                 const exp = [];
 
-                for (let i = 0; i < calcScreen.children.length; i++) {
-                    infix += calcScreen.children[i].innerText;   
-                }
-
                 const isOperator = (op) => {
                     switch (op) {
                         case "+":
                         case "-":
-                        case "*":
+                        case "x":
                         case "/": return true;
                         default: return false;
                     }
                 };
+
+                for (let i = 0; i < calcScreen.children.length; i++) {
+                    infix += calcScreen.children[i].innerText;
+                }
 
                 const precedence = (op) => {
                     switch (op) {
@@ -84,12 +92,15 @@ keys.forEach((key) => {
                         if (!isNaN(infix[j]) || infix[j] == ".") {
                             postfix += infix[j];
                         }
+
                         if (isOperator(infix[j])) {
+                            postfix += " ";
+
                             //check while stack is not empty and the precedence of the top value in
                             //the stack is higher
                             while (exp.length != 0 && (precedence(exp[exp.length-1]) > precedence(infix[j]))) {
-                                postfix += exp[exp.length-1];
-                                exp.pop();
+                                postfix += exp.pop();
+                                postfix += " ";
                             }
     
                             exp.push(infix[j]);
@@ -97,33 +108,41 @@ keys.forEach((key) => {
                     }
 
                     while (exp.length != 0) {
-                        postfix += exp[exp.length-1];
-                        exp.pop();
+                        postfix += " ";
+                        postfix += exp.pop();
+                        postfix += " ";
                     }
 
-                    return postfix;
+                    return postfix.slice(0, exp.length-1);
                 };
 
                 const evalPostfix = (postfix) => {
+                    let num = "";
                     for (let j = 0; j < postfix.length; j++) {
                         if (isOperator(postfix[j])) {
-                            const op2 = exp.pop();
-                            const op1 = exp.pop();
+                            const op2 = parseFloat(exp.pop());
+                            const op1 = parseFloat(exp.pop());
+
+                            console.log(postfix.length, j);
 
                             console.log(`op2 ${op2} | op1 ${op1} | operator ${postfix[j]}`);
 
                             const res = operate(postfix[j], op1, op2);
                             exp.push(res);
-                        } else {
-                            exp.push(parseFloat(postfix[j]));
+                        }
+                        
+                        if (!isNaN(postfix[j]) && postfix[j] != " ") {
+                            num += postfix[j];
                         }
 
-                        console.log(`stack: ${exp}`);
+                        if (postfix[j] == " ") {
+                            exp.push(parseFloat(num));
+                            num = "";
+                        }
+
                     }
 
-                    console.log(`stack: ${exp}`);
-
-                    return `${exp.pop()}`;
+                    return `${exp.pop()}`
                 }
 
                 const postfix = infixToPostfix(infix);
@@ -150,7 +169,7 @@ keys.forEach((key) => {
                     value.innerText = ")";
                 } else {
                     value.innerText = e.target.innerText;
-                    if (key.className.includes("key op")) {
+                    if (key.classList.contains("op")) {
                         if (calcScreen.lastElementChild.classList.contains("op")) {
                             console.log("replace op");
                             calcScreen.lastElementChild.innerText = key.innerText;
@@ -160,11 +179,15 @@ keys.forEach((key) => {
                     } else {
                         value.setAttribute("class", "value");
                     }
-
-                    if (key.className.includes("plus-minus")) {
-                        value.setAttribute("class", "unary");
-                    }
                 }
+
+                if (key.classList.contains("plus-minus")) {
+                    value.setAttribute("class", "unary");
+                }
+
+                // if (key.classList.contains("one")) {
+                //     calcScreen.lastElementChild.style.marginLeft = "15px";
+                // }
     
                 console.log("created div");
                 console.log(`screen children: ${calcScreen.children.length}`);
