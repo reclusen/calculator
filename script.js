@@ -98,6 +98,8 @@ keys.forEach((key) => {
                         case "-": return 1;
                         case "x":
                         case "/": return 2;
+                        case "(":
+                        case ")": return 3;
                     }
                     return -1;
                 };
