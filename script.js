@@ -3,11 +3,14 @@ const keys = document.querySelectorAll(".key");
 
 const p = document.createElement("p");
 
-keys.forEach((key) => {
-    // key.addEventListener("keydown", (e) => {
-    //     console.log("key: ", e.key);
-    // });
+window.addEventListener("load", (e) => {
+    const defaultValue = document.createElement("div");
+    defaultValue.innerText = 0;
 
+    calcScreen.append(defaultValue);
+});
+
+keys.forEach((key) => {
     key.addEventListener("click", (e) => {
         const screenStyles = getComputedStyle(calcScreen);
         const fontSize = screenStyles.fontSize;
@@ -23,29 +26,6 @@ keys.forEach((key) => {
         }
 
         switch (key.className) {
-            case "key delete":
-                if (calcScreen.children.length === 1) {
-                    console.log("reached one digit");
-                    calcScreen.firstElementChild.innerText = 0;
-                } else {
-                    console.log("clicked delete");
-                    calcScreen.removeChild(calcScreen.lastElementChild);
-                }
-                
-                if (calcScreen.children.length > 8) {
-                    calcScreen.style.fontSize = `${parseFloat(fontSize) + 4}px`;
-                }
-
-                break;
-            case "key clear":
-                const zero = document.createElement("div");
-                calcScreen.replaceChildren();
-
-                zero.innerText = 0;
-                calcScreen.style.fontSize = `52px`;
-                calcScreen.append(zero);
-
-                break;
             case "key plus-minus":
                 console.log("pressed plus minus");
 
@@ -73,6 +53,32 @@ keys.forEach((key) => {
                         value.innerText = "-";
                         calcScreen.replaceChildren(value, ...displayValues);
                 }
+                break;
+            case "key symb right-paren":
+                if (calcScreen.children.length === 1
+                    && (calcScreen.firstElementChild.innerText == 0 || calcScreen.firstElementChild.innerText == "(")) break;
+            case "key delete":
+                if (calcScreen.children.length === 1) {
+                    console.log("reached one digit");
+                    calcScreen.firstElementChild.innerText = 0;
+                } else {
+                    console.log("clicked delete");
+                    calcScreen.removeChild(calcScreen.lastElementChild);
+                }
+                
+                if (calcScreen.children.length > 8) {
+                    calcScreen.style.fontSize = `${parseFloat(fontSize) + 4}px`;
+                }
+
+                break;
+            case "key clear":
+                const zero = document.createElement("div");
+                calcScreen.replaceChildren();
+
+                zero.innerText = 0;
+                calcScreen.style.fontSize = `52px`;
+                calcScreen.append(zero);
+
                 break;
             case "key equal":
                 let infix = "";
@@ -107,21 +113,34 @@ keys.forEach((key) => {
                     let postfix = "";
 
                     for (let j = 0; j < infix.length; j++) {
-                        if (!isNaN(infix[j]) || infix[j] == ".") {
+                        if (!isNaN(infix[j]) && (infix[j] != "(" || infix[j] != ")")) {
                             postfix += infix[j];
                         }
-
-                        if (isOperator(infix[j]) || (infix[j] == "(") || (infix[j] == ")")) {
+                        
+                        if (isOperator(infix[j])) {
                             postfix += " ";
 
                             //check while stack is not empty and the precedence of the top value in
                             //the stack is higher
-                            while (exp.length != 0 && (precedence(exp[exp.length-1]) > precedence(infix[j]))) {
+                            while (exp.length != 0 && (precedence(exp[exp.length-1]) > precedence(infix[j])) && exp[exp.length-1] != "(") {
                                 postfix += exp.pop();
                                 postfix += " ";
                             }
     
                             exp.push(infix[j]);
+                        }
+                        
+                        if (infix[j] == "(") {
+                            exp.push(infix[j]);
+                        }
+                        
+                        if (infix[j] == ")") {
+                            postfix += " ";
+                            while (exp.length != 0 && exp[exp.length-1] != "(") {
+                                postfix += exp.pop();
+                                postfix += " ";
+                            }
+                            exp.pop();
                         }
                     }
 
@@ -181,25 +200,37 @@ keys.forEach((key) => {
 
                 break;
             default:
-                const value = document.createElement("div");
+                const screenValue = document.createElement("div");
 
                 if (key.classList.contains("plus-minus")) {
-                    value.setAttribute("class", "unary");
-                } else if (key.classList.contains("left-paren")) {
-                    value.innerText = "(";
-                } else if (key.classList.contains("right-paren")) {
-                    value.innerText = ")";
+                    screenValue.setAttribute("class", "unary");
+                } else if (key.classList.contains("symb")) {
+                    if (key.classList.contains("left-paren")) {
+                        screenValue.innerText = "(";
+                    }
+                    
+                    if (key.classList.contains("right-paren")) {
+                        screenValue.innerText = ")";
+                    }
+
+                    screenValue.setAttribute("class", "symb");
                 } else {
-                    value.innerText = e.target.innerText;
+                    screenValue.innerText = e.target.innerText;
+                    
                     if (key.classList.contains("op")) {
-                        if (calcScreen.lastElementChild.classList.contains("op")) {
+                        if (calcScreen.lastElementChild.className == "op") {
                             console.log("replace op");
                             calcScreen.lastElementChild.innerText = key.innerText;
                             break;
                         }
-                        value.setAttribute("class", "op");
+
+                        if (calcScreen.lastElementChild.innerText == "(") {
+                            break;
+                        }
+
+                        screenValue.setAttribute("class", "op");
                     } else {
-                        value.setAttribute("class", "value");
+                        screenValue.setAttribute("class", "value");
                     }
                 }
 
@@ -218,12 +249,13 @@ keys.forEach((key) => {
                 if (calcScreen.children.length === 1 
                     && calcScreen.firstElementChild.innerText == 0
                     && !key.classList.contains("op")) {
-                    calcScreen.firstElementChild.replaceWith(value);
-                    console.log("replace zero");
-                } else {
-                    console.log("appended value");
-                    calcScreen.append(value);
+                        calcScreen.firstElementChild.replaceWith(screenValue);
+                        console.log("replace zero");
+                        break;
                 }
+
+                console.log("appended value");
+                calcScreen.append(screenValue);
                 break;       
         }
     });
