@@ -156,6 +156,12 @@ keys.forEach((key) => {
                         }
                         
                         if (isOperator(infix[j])) {
+                            //check if value is a unary operator
+                            if (infix[j] == "-" && !isNaN(infix[j+1])) {
+                                postfix += infix[j];
+                                continue;
+                            }
+
                             postfix += " ";
 
                             //check while stack is not empty and the precedence of the top value in
@@ -195,8 +201,14 @@ keys.forEach((key) => {
                     let num = "";
                     for (let j = 0; j < postfix.length; j++) {
                         if (isOperator(postfix[j])) {
-                            const op2 = parseFloat(exp.pop());
-                            const op1 = parseFloat(exp.pop());
+                            //append number to num string
+                            if (!isNaN(postfix[j+1]) && postfix[j] != " ") {
+                                num += postfix[j];
+                                continue;
+                            }
+
+                            const op2 = exp.pop();
+                            const op1 = exp.pop();
 
                             console.log(postfix.length, j);
 
@@ -263,6 +275,7 @@ keys.forEach((key) => {
                         if (calcScreen.lastElementChild.className == "op") {
                             console.log("replace op");
                             calcScreen.lastElementChild.innerText = key.innerText;
+                            break;
                         }
 
                         screenValue.setAttribute("class", "op");
