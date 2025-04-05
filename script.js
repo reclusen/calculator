@@ -14,14 +14,8 @@ keys.forEach((key) => {
     key.addEventListener("click", (e) => {
         const screenStyles = getComputedStyle(calcScreen);
         const fontSize = screenStyles.fontSize;
-        const log = [];
-        /* a log object would be nice
-        ex:
-        const log = new Log();
-        log.entry = "2+2"; [shows equation]
-        log.result = "4"; [shows evaluated result from equation]
-        */
-        const prevKeys = [];
+
+        const screenValue = document.createElement("div");
 
         if (calcScreen.children.length > 8 && !key.classList.contains("delete")) {
             const calcRect = calcScreen.getBoundingClientRect();
@@ -37,30 +31,31 @@ keys.forEach((key) => {
             case "key plus-minus":
                 console.log("pressed plus minus");
 
-                const displayValues = calcScreen.childNodes;
+                const displayValues = calcScreen.children;
+                const exps = [];
+                let valueCounter = 0;
 
-                if (displayValues[0].innerText == "-") {
-                    console.log("negative unary pressed");
+                screenValue.innerText = "-";
 
-                    // kind of inefficient; use as temporary solution for now
-                    const exps = [];
-                    displayValues.forEach((exp) => {
-                        if (exp.innerText != "-") {
-                            exps.push(exp);
-                        }
-                    });
+                console.log("negative unary pressed");
 
-                    calcScreen.replaceChildren(...exps);
-                    break;
-                }
+                for (let i = displayValues.length - 1; i >= 0; i--) {
+                    if (displayValues[i].className == "op" || displayValues[i].innerText == "(") {
+                        displayValues[i].insertAdjacentElement('afterend', screenValue);
 
-                if (calcScreen.firstElementChild.className == "value") {
-                    const value = document.createElement("div");
-                    value.innerText = "-";
-                    value.setAttribute("class", "unary");
+                        screenValue.setAttribute("class", "unary");
+                        break;
+                    }
 
-                    if (calcScreen.firstElementChild.innerText !== "0") {    
-                        calcScreen.replaceChildren(value, ...displayValues);
+                    if (displayValues[i].className == "value") {
+                        valueCounter++;
+                    }
+
+                    if (valueCounter == displayValues.length) {
+                        calcScreen.replaceChildren(screenValue, ...displayValues);
+
+                        screenValue.setAttribute("class", "unary");
+                        break;
                     }
 
                     /*
@@ -68,21 +63,39 @@ keys.forEach((key) => {
                     the number length is from lastElementChild to the nearest and most recent
                     operator node, after which the unary operator is appended
                     */
-                    if (calcScreen.lastElementChild.innerText !== "0") {
-                        const children = calcScreen.children;
+                    if (displayValues[i].className == "unary") {
+                        let second = [];
 
-                        for (let i = children.length - 1; i >= 0; i--) {
-                            if (children[i].className == "op") {
-                                children[i].insertAdjacentElement('afterend', value);
-                                break;
-                            }
+                        for (let j = 0; j < displayValues.length; j++) {
+                            exps.push(displayValues[j]);
+                        }
+
+                        //for whole values
+                        if (valueCounter == displayValues.length - 1) {
+                            second = exps.slice(1, displayValues.length);
+
+                            calcScreen.replaceChildren(...second);
+
+                            break;
+                        }
+
+                        //for handling other sorts of expressions
+                        if ((displayValues[i-1].className == "op" || displayValues[i-1].innerText == "(" 
+                            || valueCounter == displayValues.length)) {
+
+                            console.log(`valueCounter: ${valueCounter}`);
+    
+                            const first = exps.slice(0, i);
+                            second = exps.slice(i+1, displayValues.length);
+    
+                            calcScreen.replaceChildren(...first, ...second);
+    
+                            break;   
                         }
                     }
                 }
+
                 break;
-            case "key symb right-paren":
-                if (calcScreen.children.length === 1
-                    && (calcScreen.firstElementChild.innerText == 0 || calcScreen.firstElementChild.innerText == "(")) break;
             case "key delete":
                 if (calcScreen.children.length === 1) {
                     console.log("reached one digit");
@@ -98,12 +111,11 @@ keys.forEach((key) => {
 
                 break;
             case "key clear":
-                const zero = document.createElement("div");
                 calcScreen.replaceChildren();
 
-                zero.innerText = 0;
+                screenValue.innerText = 0;
                 calcScreen.style.fontSize = `52px`;
-                calcScreen.append(zero);
+                calcScreen.append(screenValue);
 
                 break;
             case "key equal":
@@ -130,8 +142,6 @@ keys.forEach((key) => {
                         case "-": return 1;
                         case "x":
                         case "/": return 2;
-                        case "(":
-                        case ")": return 3;
                     }
                     return -1;
                 };
@@ -146,11 +156,6 @@ keys.forEach((key) => {
                         }
                         
                         if (isOperator(infix[j])) {
-                            //check if value is a unary operator
-                            if (infix[j] == "-" && !isNaN(infix[j+1])) {
-                                postfix += infix[j];
-                                continue;
-                            }
                             postfix += " ";
 
                             //check while stack is not empty and the precedence of the top value in
@@ -175,8 +180,6 @@ keys.forEach((key) => {
                             }
                             exp.pop();
                         }
-
-                        console.log(`exp: ${exp}`);
                     }
 
                     postfix += " ";
@@ -185,21 +188,17 @@ keys.forEach((key) => {
                         postfix += " ";
                     }
 
-                    return postfix.slice(0, postfix.length-1);
+                    return postfix.slice(0, exp.length-1);
                 };
 
                 const evalPostfix = (postfix) => {
                     let num = "";
                     for (let j = 0; j < postfix.length; j++) {
                         if (isOperator(postfix[j])) {
-                            //append unary operator to num string
-                            if (!isNaN(postfix[j+1]) && postfix[j] != " ") {
-                                num += postfix[j];
-                                continue;
-                            }
+                            const op2 = parseFloat(exp.pop());
+                            const op1 = parseFloat(exp.pop());
 
-                            const op2 = exp.pop();
-                            const op1 = exp.pop();
+                            console.log(postfix.length, j);
 
                             console.log(`op2 ${op2} | op1 ${op1} | operator ${postfix[j]}`);
 
@@ -217,6 +216,7 @@ keys.forEach((key) => {
                             num = "";
                         }
 
+                        console.log(`exp: ${exp}`);
                     }
 
                     return `${exp.pop()}`;
@@ -236,21 +236,23 @@ keys.forEach((key) => {
                     calcScreen.append(div);
                 }
 
-                prevKeys.push("equal");
-
                 break;
-            default:
-                const screenValue = document.createElement("div");
 
-                if (key.classList.contains("plus-minus")) {
-                    screenValue.setAttribute("class", "unary");
-                } else if (key.classList.contains("symb")) {
+            default:
+                if (key.classList.contains("symb")) {
                     if (key.classList.contains("left-paren")) {
                         screenValue.innerText = "(";
                     }
                     
                     if (key.classList.contains("right-paren")) {
                         screenValue.innerText = ")";
+
+                        if (calcScreen.children.length == 1
+                            && (calcScreen.firstElementChild.innerText == 0 || 
+                                (calcScreen.firstElementChild.className == "symb"))) {
+                                console.log("pressed right-paren");
+                                break;
+                        }
                     }
 
                     screenValue.setAttribute("class", "symb");
@@ -261,11 +263,6 @@ keys.forEach((key) => {
                         if (calcScreen.lastElementChild.className == "op") {
                             console.log("replace op");
                             calcScreen.lastElementChild.innerText = key.innerText;
-                            break;
-                        }
-
-                        if (calcScreen.lastElementChild.innerText == "(") {
-                            break;
                         }
 
                         screenValue.setAttribute("class", "op");
@@ -281,14 +278,14 @@ keys.forEach((key) => {
                         }
                     }
                 }
-                
+    
                 console.log("created div");
                 console.log(`screen children: ${calcScreen.children.length}`);
 
-                
-                if (calcScreen.children.length === 1 
+
+                if (calcScreen.children.length === 1
                     && calcScreen.firstElementChild.innerText == 0
-                    && !key.classList.contains("op")) {
+                    && !(key.classList.contains("op") || key.classList.contains("right-paren"))) {
                         calcScreen.firstElementChild.replaceWith(screenValue);
                         console.log("replace zero");
                         break;
@@ -296,7 +293,7 @@ keys.forEach((key) => {
 
                 console.log("appended value");
                 calcScreen.append(screenValue);
-                break;       
+                break;
         }
     });
 });
