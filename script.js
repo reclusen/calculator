@@ -46,12 +46,30 @@ keys.forEach((key) => {
                     break;
                 }
 
-                if (calcScreen.firstElementChild.className == "value" &&
-                    calcScreen.firstElementChild.innerText !== "0") {
-                        const value = document.createElement("div");
+                if (calcScreen.firstElementChild.className == "value") {
+                    const value = document.createElement("div");
+                    value.innerText = "-";
+                    value.setAttribute("class", "unary");
 
-                        value.innerText = "-";
+                    if (calcScreen.firstElementChild.innerText !== "0") {    
                         calcScreen.replaceChildren(value, ...displayValues);
+                    }
+
+                    /*
+                    if the number is more than one digit, the condition assumes that
+                    the number length is from lastElementChild to the nearest and most recent
+                    operator node, after which the unary operator is appended
+                    */
+                    if (calcScreen.lastElementChild.innerText !== "0") {
+                        const children = calcScreen.children;
+
+                        for (let i = children.length - 1; i >= 0; i--) {
+                            if (children[i].className == "op") {
+                                children[i].insertAdjacentElement('afterend', value);
+                                break;
+                            }
+                        }
+                    }
                 }
                 break;
             case "key symb right-paren":
@@ -118,6 +136,11 @@ keys.forEach((key) => {
                         }
                         
                         if (isOperator(infix[j])) {
+                            //check if value is a unary operator
+                            if (infix[j] == "-" && !isNaN(infix[j+1])) {
+                                postfix += infix[j];
+                                continue;
+                            }
                             postfix += " ";
 
                             //check while stack is not empty and the precedence of the top value in
@@ -142,6 +165,8 @@ keys.forEach((key) => {
                             }
                             exp.pop();
                         }
+
+                        console.log(`exp: ${exp}`);
                     }
 
                     postfix += " ";
@@ -150,17 +175,21 @@ keys.forEach((key) => {
                         postfix += " ";
                     }
 
-                    return postfix.slice(0, exp.length-1);
+                    return postfix.slice(0, postfix.length-1);
                 };
 
                 const evalPostfix = (postfix) => {
                     let num = "";
                     for (let j = 0; j < postfix.length; j++) {
                         if (isOperator(postfix[j])) {
-                            const op2 = parseFloat(exp.pop());
-                            const op1 = parseFloat(exp.pop());
+                            //append unary operator to num string
+                            if (!isNaN(postfix[j+1]) && postfix[j] != " ") {
+                                num += postfix[j];
+                                continue;
+                            }
 
-                            console.log(postfix.length, j);
+                            const op2 = exp.pop();
+                            const op1 = exp.pop();
 
                             console.log(`op2 ${op2} | op1 ${op1} | operator ${postfix[j]}`);
 
@@ -178,7 +207,6 @@ keys.forEach((key) => {
                             num = "";
                         }
 
-                        console.log(`exp: ${exp}`);
                     }
 
                     return `${exp.pop()}`;
