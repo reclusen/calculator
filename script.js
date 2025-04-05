@@ -14,6 +14,14 @@ keys.forEach((key) => {
     key.addEventListener("click", (e) => {
         const screenStyles = getComputedStyle(calcScreen);
         const fontSize = screenStyles.fontSize;
+        const log = [];
+        /* a log object would be nice
+        ex:
+        const log = new Log();
+        log.entry = "2+2"; [shows equation]
+        log.result = "4"; [shows evaluated result from equation]
+        */
+        const prevKeys = [];
 
         if (calcScreen.children.length > 8 && !key.classList.contains("delete")) {
             const calcRect = calcScreen.getBoundingClientRect();
@@ -122,6 +130,8 @@ keys.forEach((key) => {
                         case "-": return 1;
                         case "x":
                         case "/": return 2;
+                        case "(":
+                        case ")": return 3;
                     }
                     return -1;
                 };
@@ -226,6 +236,8 @@ keys.forEach((key) => {
                     calcScreen.append(div);
                 }
 
+                prevKeys.push("equal");
+
                 break;
             default:
                 const screenValue = document.createElement("div");
@@ -269,11 +281,11 @@ keys.forEach((key) => {
                         }
                     }
                 }
-    
+                
                 console.log("created div");
                 console.log(`screen children: ${calcScreen.children.length}`);
 
-
+                
                 if (calcScreen.children.length === 1 
                     && calcScreen.firstElementChild.innerText == 0
                     && !key.classList.contains("op")) {
