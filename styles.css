@@ -91,6 +91,7 @@ body {
 
 .key.plus-minus {
     grid-row: 6;
+    grid-column: 1;
 }
 
 .key.zero {
@@ -104,7 +105,7 @@ body {
 }
 
 .key.dot:disabled {
-    background-color: #4B4A4F;
+    background: #4B4A4F;
     color: #4B4A4F;
     cursor: auto;
 }
@@ -112,7 +113,6 @@ body {
 .key.equal {
     grid-column: 4;
     grid-row: 6;
-    /* background-color: #A0C8D5; */
     background: linear-gradient(100deg, #C2D4C6, #A0C8D5);
     color: #181415;
 }
