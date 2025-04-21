@@ -1,9 +1,8 @@
+/* eslint-disable no-case-declarations */
 const calcScreen = document.querySelector(".screen");
 const keys = document.querySelectorAll(".key");
 
-const p = document.createElement("p");
-
-window.addEventListener("load", (e) => {
+window.addEventListener("load", () => {
     const defaultValue = document.createElement("div");
     defaultValue.innerText = 0;
 
